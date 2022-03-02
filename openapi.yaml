@@ -1,6 +1,6 @@
 openapi: 3.0.0
 info:
-  title: payment-connector
+  title: Payment Connector
   version: 1.0.0
   description: 'Specification for payment connector, an application to allow the reuse of communications from our products with other payment platforms'
   contact:

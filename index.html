@@ -38,6 +38,7 @@
       window.onload = () => {
         const ui = SwaggerUIBundle({
           url: 'openapi.yaml',
+          dom_id: '#swagger-ui',
           // Use in case of documentation versioning
           // urls: [
           //   {
@@ -49,10 +50,8 @@
           //     name: '',
           //   },
           // ],
-          name: 'Sample1',
-          dom_id: '#swagger-ui',
-          presets: [SwaggerUIBundle.presets.apis, SwaggerUIStandalonePreset],
-          layout: 'StandaloneLayout',
+          // presets: [SwaggerUIBundle.presets.apis, SwaggerUIStandalonePreset],
+          // layout: 'StandaloneLayout',
         });
       };
     </script>
