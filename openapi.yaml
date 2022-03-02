@@ -1,0 +1,346 @@
+openapi: 3.0.0
+info:
+  title: payment-connector
+  version: 1.0.0
+  description: 'Specification for payment connector, an application to allow the reuse of communications from our products with other payment platforms'
+  contact:
+    name: Aftersale
+    url: 'https://after.sale'
+servers:
+  - url: 'http://localhost'
+tags:
+  - name: settings
+    description: Everything about this connector
+  - name: voucher
+    description: Access to voucher creation
+  - name: credit-card
+    description: Access to credit card refund
+paths:
+  /settings:
+    get:
+      summary: Configuration
+      tags:
+        - settings
+      operationId: get-settings
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SettingsGet200Response'
+      description: This allows understand what this connector is and what it can do
+  /refunds/voucher:
+    post:
+      summary: Voucher creation
+      tags:
+        - voucher
+      operationId: post-refunds-voucher
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RefundVoucherPost200Response'
+        '422':
+          $ref: '#/components/responses/Default422Response'
+      description: This allows voucher creation on an integration
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefundVoucherPostBody'
+        description: ''
+  /refunds/credit-card:
+    post:
+      summary: Credit card refund creation
+      tags:
+        - credit-card
+      operationId: post-refunds-credit-card
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RefundCreditCardPost200Response'
+        '422':
+          $ref: '#/components/responses/Default422Response'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefundCreditCardPostBody'
+      description: This allows credit card refund on an integration
+components:
+  schemas:
+    RefundItemArrayOfObjects:
+      title: RefundItemArrayOfObjects
+      type: array
+      description: Item(s) to be refunded
+      items:
+        type: object
+        description: A object containing information of the item to be refunded
+        nullable: true
+        properties:
+          quantity:
+            type: integer
+            description: Quantity of items to be refunded
+          sku:
+            type: string
+            description: Code of the item to be refunded
+          unitary_value:
+            type: number
+            description: Value of a single item
+    RefundCreditCardPostBody:
+      title: RefundCreditCardPostBody
+      type: object
+      description: All parameters that can be sent within the JSON payload POST request
+      properties:
+        amount:
+          type: number
+          description: Balance to be refunded
+        email:
+          type: string
+          description: Customer email on ecommerce platform
+        refund_items:
+          $ref: '#/components/schemas/RefundItemArrayOfObjects'
+        free_shipping:
+          type: boolean
+          description: If there was free shipping at the time of purchase
+        free_shipping_amount:
+          type: number
+          description: 'Value of free shipping, if was available'
+        customer_document:
+          type: string
+          description: 'Customer document on ecommerce platform, without mask'
+      required:
+        - amount
+    RefundCreditCardPost200Response:
+      title: RefundCreditCardPost200Response
+      type: object
+      description: 200 response for POST method
+      properties:
+        success:
+          type: boolean
+          default: true
+          description: If the operation was successful
+        data:
+          type: object
+          required:
+            - transaction_id
+          description: Object that holds a successful response data
+          properties:
+            transaction_id:
+              type: string
+              description: Credit card refund transaction code
+      required:
+        - success
+        - data
+    RefundVoucherPostBody:
+      title: RefundVoucherPostBody
+      type: object
+      description: All parameters that can be sent within the JSON payload POST request
+      properties:
+        amount:
+          type: number
+          description: Balance of the voucher that will be created
+        type:
+          type: string
+          enum:
+            - credit
+            - voucher
+          description: Type of voucher that will be created
+        order_id:
+          type: string
+          description: Order identification in ecommerce platform
+          nullable: true
+        refund_items:
+          $ref: '#/components/schemas/RefundItemArrayOfObjects'
+        free_shipping:
+          type: string
+          description: If there was free shipping at the time of purchase
+          nullable: true
+        free_shipping_amount:
+          type: string
+          description: 'Value of free shipping, if was available'
+          nullable: true
+        customer_document:
+          type: string
+          description: 'Customer document on ecommerce platform, without mask'
+          nullable: true
+        expiring_days:
+          type: integer
+          description: Number of days until the voucher expiration date
+      required:
+        - amount
+        - type
+    RefundVoucherPost200Response:
+      title: RefundVoucherPost200Response
+      type: object
+      description: 200 response for POST method
+      properties:
+        success:
+          type: boolean
+          description: If the operation was successful
+        data:
+          type: object
+          description: Object that holds a successful response data
+          required:
+            - voucher_code
+          properties:
+            voucher_code:
+              type: string
+              description: Voucher code created in ecommerce platform
+      required:
+        - success
+        - data
+    SettingsGet200Response:
+      title: SettingsGetResponse
+      type: object
+      description: 200 response for GET method
+      properties:
+        success:
+          type: boolean
+          default: true
+          description: If the operation was successful
+        data:
+          type: object
+          description: Object that holds a successful response data
+          required:
+            - name
+            - auth_fields
+            - custom_fields
+            - services
+          properties:
+            description:
+              type: string
+              description: Short description about connector
+            name:
+              type: string
+              description: Connector name
+            image_url:
+              type: string
+              description: Connector logo url
+            auth_fields:
+              type: array
+              description: Any field that the ecommerce uses for authentication
+              items:
+                type: object
+                description: Extra field(s) that can be configured. Will be added to requests who require authentication
+                nullable: true
+                properties:
+                  key:
+                    type: string
+                    description: Field identifier
+                  label:
+                    type: string
+                    description: 'Field name to be displayed in an interface, expressing what the key means'
+            custom_fields:
+              type: array
+              description: Any field not mapped by this connector
+              items:
+                type: object
+                description: Extra field(s) that can be configured. Will be added to the body of requests to the defined services
+                nullable: true
+                properties:
+                  key:
+                    type: string
+                    pattern: '^[a-z-]+$'
+                    description: 'Field identifier. Strings separated by dash, `slug-case`'
+                  label:
+                    type: string
+                    description: 'Field name to be displayed in an interface, expressing what the key means'
+                  default_value:
+                    description: 'Value for a field in case a value is not defined. Can be any value - string, number, boolean, array, object or null.'
+                  required:
+                    type: boolean
+                    description: Indicates whether filling this field is mandatory
+                  services:
+                    type: array
+                    description: In which services this field can be used
+                    items:
+                      type: string
+                      nullable: true
+            service_queue:
+              type: object
+              description: 'Information about queuing service, only if this connector uses.'
+              properties:
+                service_name:
+                  type: string
+                  description: An identification/name for the queue service
+                queue_name:
+                  type: string
+                  description: The name of the queue within the queuing service
+            services:
+              type: array
+              description: Services avaiable for this connector. This is where the provided custom_fields (if there is any) will be declared and used
+              items:
+                type: object
+                description: Object that holds the services and their params
+                nullable: true
+                properties:
+                  id:
+                    type: string
+                    description: 'Service identifier, which indicates which parameters belong to the endpoint. Strings separated by dot'
+                    pattern: '^[a-z.]+$'
+                  params:
+                    type: object
+                    description: Parameters that belong to this service
+                    properties:
+                      compatible_fields:
+                        type: array
+                        description: Indicates which attributes of a given field is compatible
+                        items:
+                          type: object
+                          description: Object that holds compatible fields attributes
+                          nullable: true
+                          properties:
+                            key:
+                              type: string
+                              pattern: '^[a-z.]+$'
+                              description: 'Attribute identifier, nested attributes must be separated by dots'
+                            validation:
+                              type: object
+                              description: Types of validation for the value of a given attribute
+                              nullable: true
+                              properties:
+                                required:
+                                  type: boolean
+                                  description: Indicates if the field must have a value or not
+      required:
+        - success
+        - data
+  responses:
+    Default422Response:
+      description: Unprocessable Entity
+      content:
+        application/json:
+          schema:
+            type: object
+            description: Object that holds an error response
+            properties:
+              success:
+                type: boolean
+                default: false
+                description: If the operation was successful
+              error:
+                type: object
+                description: Object that holds a unsuccessful response error
+                required:
+                  - message
+                  - debug_data
+                properties:
+                  code:
+                    type: integer
+                    description: Code associated with the operation error
+                  message:
+                    type: string
+                    description: Message associated with the operation error
+                  debug_data:
+                    type: object
+                    description: Debugging information associated with the operation error
+            required:
+              - success
+              - error

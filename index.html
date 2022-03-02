@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.6.0/swagger-ui.min.css"
+      integrity="sha512-5Qqi9k+ey4yJCfC/8NemvXAcL9PMUE2ROvmIZ1TXd2sO0KXXZyykItptL710pH2qURIhzeqeidjZIDVtt3sHDA=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+    <link
+      rel="shortcut icon"
+      type="image/x-icon"
+      href="https://after.sale/wp-content/themes/aftersale/assets/img/favicon.ico"
+      sizes="32x32"
+    />
+    <title>OpenAPI Payment Connector</title>
+  </head>
+  <body>
+    <div id="swagger-ui"></div>
+
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.6.0/swagger-ui-bundle.min.js"
+      integrity="sha512-0FcT9526WNiWsIi4g138WkLLlT4QWabo69l3wEj/vEjT5S4yXwIh6bWA7IZem5FdgRykTOs2olAZFdSb6F0+vg=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.6.0/swagger-ui-standalone-preset.min.js"
+      integrity="sha512-BKoXV89/RcJgBAEA4pzR5yE6uGOdvDrTZ7rbLSeMDHHKmnG9aZg0Bd9hS4FHqkCbLz+T3pl38+eLqwKTxHGu5g=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
+    <script>
+      window.onload = () => {
+        const ui = SwaggerUIBundle({
+          url: 'openapi.yaml',
+          // Use in case of documentation versioning
+          // urls: [
+          //   {
+          //     url: '',
+          //     name: '',
+          //   },
+          //   {
+          //     url: '',
+          //     name: '',
+          //   },
+          // ],
+          name: 'Sample1',
+          dom_id: '#swagger-ui',
+          presets: [SwaggerUIBundle.presets.apis, SwaggerUIStandalonePreset],
+          layout: 'StandaloneLayout',
+        });
+      };
+    </script>
+  </body>
+</html>
