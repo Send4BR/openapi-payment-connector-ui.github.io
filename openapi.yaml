@@ -7,7 +7,7 @@ info:
     name: Aftersale
     url: 'https://after.sale'
 servers:
-  - url: 'http://localhost'
+  - url: https
 tags:
   - name: settings
     description: Everything about this connector
@@ -29,6 +29,52 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SettingsGet200Response'
+              examples:
+                get-response-settings-example:
+                  value:
+                    success: true
+                    data:
+                      name: PayPearl
+                      description: Clam up and give my money
+                      image_url: 'http://www.notarealsite.domain.com/paypearl_logo.png'
+                      auth_fields:
+                        - key: username
+                          label: Username
+                        - key: password
+                          label: Password
+                      custom_fields:
+                        - key: cpf
+                          label: Cadastro de Pessoa Física
+                          default_value: null
+                          required: true
+                          services:
+                            - refunds.voucher
+                            - refunds.credit-card
+                        - key: rg
+                          label: Registro Geral
+                          default_value: null
+                          required: false
+                          services:
+                            - refunds.voucher
+                      service_queue:
+                        service_name: service_bus
+                        queue_name: queue-payment-paypearl
+                      services:
+                        - id: refunds.voucher
+                          params:
+                            compatible_fields:
+                              - key: document.cpf
+                                validation:
+                                  required: true
+                              - key: document.rg
+                                validation:
+                                  required: false
+                        - id: refunds.credit-card
+                          params:
+                            compatible_fields:
+                              - key: bank.account.cpf
+                                validation:
+                                  required: true
       description: This allows understand what this connector is and what it can do
   /refunds/voucher:
     post:
@@ -43,6 +89,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/RefundVoucherPost200Response'
+              examples:
+                post-response-refunds-voucher-example:
+                  value:
+                    success: true
+                    data:
+                      voucher_code: A1B2C3D4E5
         '422':
           $ref: '#/components/responses/Default422Response'
       description: This allows voucher creation on an integration
@@ -51,6 +103,20 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/RefundVoucherPostBody'
+            examples:
+              post-body-refunds-voucher-example:
+                value:
+                  amount: 1.5
+                  type: credit
+                  order_id: '1234567890'
+                  refund_items:
+                    - quantity: 1
+                      sku: ABCDEF123456
+                      unitary_value: 1.5
+                  free_shipping: false
+                  free_shipping_amount: null
+                  customer_document: 111.111.111-11
+                  expiring_days: 60
         description: ''
   /refunds/credit-card:
     post:
@@ -65,6 +131,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/RefundCreditCardPost200Response'
+              examples:
+                post-response-refunds-credit-card-example:
+                  value:
+                    success: true
+                    data:
+                      transaction_id: 1A2B3C4D5E
         '422':
           $ref: '#/components/responses/Default422Response'
       requestBody:
@@ -72,6 +144,18 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/RefundCreditCardPostBody'
+            examples:
+              post-body-refunds-credit-card-example:
+                value:
+                  amount: 2.6
+                  email: email@email.com
+                  refund_items:
+                    - quantity: 2
+                      sku: 123456ABCDEF
+                      unitary_value: 1.3
+                  free_shipping: true
+                  free_shipping_amount: 1.1
+                  customer_document: 1.111.111
       description: This allows credit card refund on an integration
 components:
   schemas:
@@ -159,12 +243,12 @@ components:
         refund_items:
           $ref: '#/components/schemas/RefundItemArrayOfObjects'
         free_shipping:
-          type: string
+          type: boolean
           description: If there was free shipping at the time of purchase
           nullable: true
         free_shipping_amount:
-          type: string
           description: 'Value of free shipping, if was available'
+          type: number
           nullable: true
         customer_document:
           type: string
@@ -214,12 +298,12 @@ components:
             - custom_fields
             - services
           properties:
-            description:
-              type: string
-              description: Short description about connector
             name:
               type: string
               description: Connector name
+            description:
+              type: string
+              description: Short description about connector
             image_url:
               type: string
               description: Connector logo url
@@ -247,8 +331,8 @@ components:
                 properties:
                   key:
                     type: string
-                    pattern: '^[a-z-]+$'
-                    description: 'Field identifier. Strings separated by dash, `slug-case`'
+                    pattern: '^[a-z_]+$'
+                    description: 'Field identifier. Strings separated by underlines, `snake-case` like.'
                   label:
                     type: string
                     description: 'Field name to be displayed in an interface, expressing what the key means'
@@ -262,6 +346,7 @@ components:
                     description: In which services this field can be used
                     items:
                       type: string
+                      pattern: '^[a-z-.]+$'
                       nullable: true
             service_queue:
               type: object
@@ -283,8 +368,10 @@ components:
                 properties:
                   id:
                     type: string
-                    description: 'Service identifier, which indicates which parameters belong to the endpoint. Strings separated by dot'
-                    pattern: '^[a-z.]+$'
+                    description: |-
+                      Service identifier, which indicates which parameters belong to the endpoint. A url directory path is a dot and strings separated by dash `slug-case` like.
+                      E.g.: /refunds/voucher will be refunds.voucher
+                    pattern: '^[a-z-.]+$'
                   params:
                     type: object
                     description: Parameters that belong to this service
@@ -344,3 +431,11 @@ components:
             required:
               - success
               - error
+          examples:
+            error-response-example:
+              value:
+                success: false
+                error:
+                  code: 1
+                  message: Some error message
+                  debug_data: {}
