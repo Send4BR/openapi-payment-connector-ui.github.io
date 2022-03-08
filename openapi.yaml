@@ -83,8 +83,8 @@ paths:
         - credit-card
       operationId: post-refunds-credit-card
       responses:
-        '201':
-          description: Created
+        '200':
+          description: OK
           content:
             application/json:
               schema:
@@ -124,12 +124,12 @@ paths:
         - voucher
       operationId: post-refunds-voucher
       responses:
-        '200':
-          description: OK
+        '201':
+          description: Created
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RefundVoucherPost200Response'
+                $ref: '#/components/schemas/RefundVoucherPost201Response'
               examples:
                 post-response-refunds-voucher-example:
                   value:
@@ -201,7 +201,7 @@ components:
           type: string
           description: 'Customer document on ecommerce platform, without mask'
         custom_fields:
-          description: 'If there are any custom_field previously declared, they will be inserted inside this array'
+          description: 'If there are any custom_field previously declared, they will be inserted inside this object'
           type: object
       required:
         - amount
@@ -259,14 +259,14 @@ components:
           description: Number of days until the voucher expiration date
         custom_fields:
           type: object
-          description: 'If there are any custom_field previously declared, they will be inserted inside this array'
+          description: 'If there are any custom_field previously declared, they will be inserted inside this object'
       required:
         - amount
         - type
-    RefundVoucherPost200Response:
-      title: RefundVoucherPost200Response
+    RefundVoucherPost201Response:
+      title: RefundVoucherPost201Response
       type: object
-      description: 200 response for POST method
+      description: 201 response for POST method
       properties:
         success:
           type: boolean
@@ -297,9 +297,6 @@ components:
           description: Object that holds a successful response data
           required:
             - name
-            - auth_fields
-            - custom_fields
-            - service_queue
             - services
           properties:
             name:
@@ -313,7 +310,9 @@ components:
               description: Connector logo url
             auth_fields:
               type: array
-              description: Any field that the ecommerce uses for authentication
+              description: |-
+                Any field that the ecommerce uses for authentication
+                E.g.: Tokens, logins, passwords and etc.
               items:
                 type: object
                 description: Extra field(s) that can be configured. Will be added to requests who require authentication
@@ -326,7 +325,7 @@ components:
                     description: 'Field name to be displayed in an interface, expressing what the key means'
             custom_fields:
               type: array
-              description: Any field not mapped by this connector
+              description: 'Any field not mapped by this connector, that can be configured. Will be added to the body of requests to the defined `services`'
               items:
                 type: object
                 description: Extra field(s) that can be configured. Will be added to the body of requests to the defined services
@@ -334,7 +333,9 @@ components:
                   key:
                     type: string
                     pattern: '^[a-z_]+$'
-                    description: 'Field identifier/attribute name. Strings are separated by underlines, `snake_case` like.'
+                    description: |-
+                      Field identifier/attribute name. Strings are separated by underlines, `snake_case` like.
+                      E.g.: "field_name"
                   label:
                     type: string
                     description: 'Field name to be displayed in an interface, expressing what the key means'
@@ -352,7 +353,7 @@ components:
                       nullable: true
             service_queue:
               type: object
-              description: 'Information about queuing service, only if this connector uses.'
+              description: 'Information about queuing service, only if this connector uses'
               properties:
                 service_name:
                   type: string
@@ -362,7 +363,7 @@ components:
                   description: The name of the queue within the queuing service
             services:
               type: array
-              description: Services avaiable for this connector. This is where the provided custom_fields (if there is any) will be declared and used
+              description: Services avaiable for this connector. This is where the provided `custom_fields` (if there is any) will be declared and used
               items:
                 type: object
                 description: Object that holds the services and their params
@@ -388,7 +389,9 @@ components:
                             key:
                               type: string
                               pattern: '^[a-z_]+$'
-                              description: 'Attribute identifier, nested attributes must be separated by dots'
+                              description: |-
+                                Field identifier/attribute name. Strings are separated by underlines, `snake_case` like.
+                                E.g.: "field_name"
                             validation:
                               type: object
                               description: Types of validation for the value of a given attribute
