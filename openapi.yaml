@@ -59,6 +59,8 @@ paths:
                       service_queue:
                         service_name: service_bus
                         queue_name: queue-payment-paypearl
+                        services:
+                          - refunds.voucher
                       services:
                         - id: refunds.voucher
                           params:
@@ -167,7 +169,6 @@ components:
       items:
         type: object
         description: A object containing information of the item to be refunded
-        nullable: true
         properties:
           quantity:
             type: integer
@@ -178,6 +179,10 @@ components:
           unitary_value:
             type: number
             description: Value of a single item
+        required:
+          - quantity
+          - sku
+          - unitary_value
     RefundCreditCardPostBody:
       title: RefundCreditCardPostBody
       type: object
@@ -323,6 +328,8 @@ components:
                   label:
                     type: string
                     description: 'Field name to be displayed in an interface, expressing what the key means'
+                required:
+                  - key
             custom_fields:
               type: array
               description: 'Any field not mapped by this connector, that can be configured. Will be added to the body of requests to the defined `services`'
@@ -350,7 +357,10 @@ components:
                     items:
                       type: string
                       pattern: '^[a-z-._]+$'
-                      nullable: true
+                required:
+                  - key
+                  - required
+                  - services
             service_queue:
               type: object
               description: 'Information about queuing service, only if this connector uses'
@@ -361,6 +371,16 @@ components:
                 queue_name:
                   type: string
                   description: The name of the queue within the queuing service
+                services:
+                  type: array
+                  description: In which services the queue will be used
+                  items:
+                    type: string
+                    pattern: '^[a-z-._]+$'
+              required:
+                - service_name
+                - queue_name
+                - services
             services:
               type: array
               description: Services avaiable for this connector. This is where the provided `custom_fields` (if there is any) will be declared and used
@@ -384,7 +404,6 @@ components:
                         items:
                           type: object
                           description: Object that holds compatible fields attributes
-                          nullable: true
                           properties:
                             key:
                               type: string
@@ -395,11 +414,16 @@ components:
                             validation:
                               type: object
                               description: Types of validation for the value of a given attribute
-                              nullable: true
                               properties:
                                 required:
                                   type: boolean
                                   description: Indicates if the field must have a value or not
+                              required:
+                                - required
+                          required:
+                            - key
+                required:
+                  - id
       required:
         - success
         - data
